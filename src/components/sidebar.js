@@ -4,7 +4,12 @@ export default class Sidebar extends Component {
         return (
             <div>
                 <div className="sidebar-heading">Select Playlists</div>
-                <ul className="list-group list-group-flush">
+                <ul className="list-group list-group-flush"
+                    style={{
+                        overflow: "hidden",
+                        overflowY: "scroll",
+                        maxHeight: "98vh"
+                    }}>
                     {this.props.playlists.map((item, index)=> (
                         <button 
                             className={`list-group-item list-group-item-action ${item.selected ? "active" : ""}`} 

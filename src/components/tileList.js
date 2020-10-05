@@ -5,7 +5,12 @@ export default class TileList extends Component {
         for (let i = 0; i < this.props.playlists.length; i++) {
             if (this.props.playlists[i].selected) {
                 bList.push(<button 
-                    className={`list-group-item list-group-item-action ${this.props.selectedIndices.includes(i) ? "active" : ""}`} 
+                    className={`list-group-item list-group-item-action btn btn-success text-center ${this.props.selectedIndices.includes(i) ? "active" : ""}`} 
+                    style={{
+                        height: "20vh",
+                        width: "20vh",
+                        borderRadius: "5px"
+                    }}
                     key={i} 
                     onClick={() => {
                         this.props.handleTileClick(i);
@@ -15,9 +20,10 @@ export default class TileList extends Component {
             }
         }
         return (
-            <div>
+            <div style={{margin: "10px"}}>
                 <div className="sidebar-heading">Select Playlists</div>
-                <ul className="list-group list-group-flush">
+                <ul className="btn-group"
+                    style={{maxHeight: "800px"}}>
                     {bList}
                 </ul>
             </div>

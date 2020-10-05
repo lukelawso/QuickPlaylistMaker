@@ -57,7 +57,11 @@ export default class Main extends Component {
         <div>
             {this.state.token != null && (
                 <div className="d-flex">
-                    <div className="bg-light border-right" id="sidebar-wrapper">
+                    <div className="bg-light border-right" id="sidebar-wrapper"
+                        style={{
+                            width: "20%",
+                            minWidth: "20%"
+                        }}>
                         <Sidebar playlists={this.state.playlists} handleClick={this.handleClick}></Sidebar>
                     </div>
                     <TileList playlists={this.state.playlists} handleTileClick={this.handleTileClick} selectedIndices={this.state.selectedIndices}></TileList>
