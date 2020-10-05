@@ -2,13 +2,13 @@ import React, { Component } from 'react';
 export default class TileList extends Component {
     render() {
         const bList = [];
-        for (var i = 0; i < this.props.playlists.length; i++) {
+        for (let i = 0; i < this.props.playlists.length; i++) {
             if (this.props.playlists[i].selected) {
                 bList.push(<button 
-                    className={`list-group-item list-group-item-action`} 
+                    className={`list-group-item list-group-item-action ${this.props.selectedIndices.includes(i) ? "active" : ""}`} 
                     key={i} 
                     onClick={() => {
-                        console.log("wowow");
+                        this.props.handleTileClick(i);
                     }}>
                     {this.props.playlists[i].name}
                 </button>);

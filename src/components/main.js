@@ -7,8 +7,9 @@ import TileList from './tileList.js';
 export default class Main extends Component {
     constructor(props) {
         super(props);
-        this.state = {token: null, playlists: []};
+        this.state = {token: null, playlists: [], selectedIndices: []};
         this.handleClick=this.handleClick.bind(this);
+        this.handleTileClick=this.handleTileClick.bind(this);
     }    
 
     handleClick(index) {
@@ -25,6 +26,18 @@ export default class Main extends Component {
         this.setState({
             playlists: list
         });
+    }
+
+    handleTileClick(pos) {
+        var list = this.state.selectedIndices;
+        var index = list.indexOf(pos);
+        console.log(index + ", pos:" + pos)
+        if (index !== -1) {
+            list.splice(index, 1);           
+        } else {
+            list.push(pos);
+        }
+        this.setState({selectedIndices: list});
     }
 
     componentDidMount() {
@@ -47,7 +60,7 @@ export default class Main extends Component {
                     <div className="bg-light border-right" id="sidebar-wrapper">
                         <Sidebar playlists={this.state.playlists} handleClick={this.handleClick}></Sidebar>
                     </div>
-                    <TileList playlists={this.state.playlists}></TileList>
+                    <TileList playlists={this.state.playlists} handleTileClick={this.handleTileClick} selectedIndices={this.state.selectedIndices}></TileList>
                 </div>
             )}
             <div id="page-content-wrapper">
