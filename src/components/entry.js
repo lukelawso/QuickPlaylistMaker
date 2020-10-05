@@ -20,7 +20,7 @@ export default class Entry extends Component {
     return (
         <div className="text-center align-middle">
         {this.state.token == null && (
-            <div id="loginBtnWrap" >
+            <div id="loginBtnWrap">
             <a
             id="loginBtn" className="btn btn-success"
             href={`${authEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes.join("%20")}&response_type=token&show_dialog=true`}

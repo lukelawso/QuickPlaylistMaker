@@ -2,18 +2,29 @@ import React, { Component } from 'react';
 import axios from 'axios';
 import Sidebar from './sidebar.js'
 import hash from '../hash';
+import TileList from './tileList.js';
 
 export default class Main extends Component {
     constructor(props) {
         super(props);
-        this.state = {token: null, playlists: [], viewList: [], selected: []};
-        
+        this.state = {token: null, playlists: []};
+        this.handleClick=this.handleClick.bind(this);
     }    
 
     handleClick(index) {
-        let temp = this.state.selected;
-        temp[index] = temp[index] ? false : true;
-        this.setState({selected: temp});
+        //console.log(this.state.playlists[index].name + " at index: " + index);
+        const list = this.state.playlists.map((item, j) => {
+            if (j === index) {
+                let temp = item;
+                temp.selected = item.selected ? false : true;
+                return temp;
+            } else {
+                return item;
+            }
+        });
+        this.setState({
+            playlists: list
+        });
     }
 
     componentDidMount() {
@@ -23,23 +34,7 @@ export default class Main extends Component {
             // Set token
             axios.get('https://api.spotify.com/v1/me/playlists/?limit=50',
             {headers: { 'Authorization': 'Bearer ' + _token }})
-            .then(res => {     
-                this.setState({selected: [].fill(false, 0, res.data.items.length)});
-                for (let i = 0; i < res.data.items.length; i++) {
-                    this.state.viewList.push(
-                        <button 
-                            className={`list-group-item list-group-item-action bg-light ${this.state.selected[i] ? "" : "clicked"}`} 
-                            key={i} 
-                            onClick={this.handleClick(i)}>
-                                {res.data.items[i].name}
-                        </button>
-                    );
-                }           
-                this.setState({
-                    token: _token,
-                    playlists: res.data
-                });
-            });
+            .then(res => {this.setState({token: _token, playlists: res.data.items})});          
         }
         
     }
@@ -47,13 +42,14 @@ export default class Main extends Component {
     render() {        
         return (
         <div>
-            <div className="d-flex">
-            <div className="bg-light border-right" id="sidebar-wrapper">
             {this.state.token != null && (
-                <Sidebar token={this.state.token} viewList={this.state.viewList} handleClick={this.handleClick}></Sidebar>
+                <div className="d-flex">
+                    <div className="bg-light border-right" id="sidebar-wrapper">
+                        <Sidebar playlists={this.state.playlists} handleClick={this.handleClick}></Sidebar>
+                    </div>
+                    <TileList playlists={this.state.playlists}></TileList>
+                </div>
             )}
-            </div>
-            </div>   
             <div id="page-content-wrapper">
             </div>         
         </div>
