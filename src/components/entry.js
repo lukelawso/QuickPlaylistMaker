@@ -7,7 +7,8 @@ export const scopes = [
     "user-top-read",
     "user-read-currently-playing",
     "user-read-playback-state",
-    "playlist-read-private"
+    "playlist-read-private",
+    "user-library-read"
 ];
 
 
