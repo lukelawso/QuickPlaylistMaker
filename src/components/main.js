@@ -24,7 +24,7 @@ export default class Main extends Component {
     }    
 
     async getPlaylistSongs(url) {
-        axios.get(url, {headers: {'Authorization': 'Bearer ' + this.state.token}})
+        return axios.get(url, {headers: {'Authorization': 'Bearer ' + this.state.token}})
         .then(res => {
             let songs = res.data.items.map(item => {
                 return item.track;
