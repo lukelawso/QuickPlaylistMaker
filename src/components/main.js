@@ -16,13 +16,44 @@ export default class Main extends Component {
                 tracks: null,
                 offset: 0
             },
-            currentTrackUrl: null
+            currentTrackUri: null,
+            playlistTracks: {}
         };
         this.handleClick=this.handleClick.bind(this);
         this.handleTileClick=this.handleTileClick.bind(this);
     }    
 
-    handleClick(index) {
+    async getPlaylistSongs(url) {
+        axios.get(url, {headers: {'Authorization': 'Bearer ' + this.state.token}})
+        .then(res => {
+            let songs = res.data.items.map(item => {
+                return item.track;
+            });
+            if (res.data.next) {
+                return songs.concat(this.getPlaylistSongs(res.data.next));
+            } else {
+                console.log(songs);
+                return songs;
+            }
+        })
+    }
+
+    async handleClick(index) {
+        //Fetch playlist items if first time choosing
+        if (!this.state.playlistTracks.hasOwnProperty(this.state.playlists[index].uri)) {
+            let list = await this.getPlaylistSongs(this.state.playlists[index].tracks.href);
+            
+            console.log(list);
+            let temp = {};
+            for (var i in this.state.playlistTracks) {
+                temp[i] = this.state.playlistTracks[i];    
+            }
+            temp[this.state.playlists[index].uri] = list;
+            this.setState({playlistTracks: temp});
+                        
+        }
+
+        //Update state selected attribute
         const list = this.state.playlists.map((item, j) => {
             if (j === index) {
                 let temp = item;
@@ -37,15 +68,8 @@ export default class Main extends Component {
         });
     }
 
-    handleTileClick(pos) {
-        var list = this.state.selectedIndices;
-        var index = list.indexOf(pos);
-        if (index !== -1) {
-            list.splice(index, 1);           
-        } else {
-            list.push(pos);
-        }
-        this.setState({selectedIndices: list});
+    handleTileClick(index) {
+
     }
 
     componentDidMount() {
@@ -63,7 +87,6 @@ export default class Main extends Component {
             .then(res => {
                 let offset = this.state.songQueue.offset+50;
                 let uri = res.data.items[this.state.songQueue.position % 50].track.uri;
-                let track = "https://open.spotify.com/embed?uri="+uri;
                 this.setState({
                     songQueue: {
                         current: null,
@@ -71,7 +94,7 @@ export default class Main extends Component {
                         tracks: res.data.items,
                         offset: offset
                     },
-                    currentTrackUrl: track
+                    currentTrackUri: uri
             })})
         }
         
@@ -88,11 +111,13 @@ export default class Main extends Component {
                             minWidth: "20%"
                         }}>
                         <Sidebar playlists={this.state.playlists} handleClick={this.handleClick}
-                            currentTrackUrl={this.state.currentTrackUrl}></Sidebar>
+                            currentTrackUri={this.state.currentTrackUri}></Sidebar>
                     </div>
                     <TileList playlists={this.state.playlists} 
                         handleTileClick={this.handleTileClick} 
-                        selectedIndices={this.state.selectedIndices}></TileList>
+                        selectedIndices={this.state.selectedIndices}
+                        playlistTracks={this.state.playlistTracks}
+                        currentTrackUri={this.state.currentTrackUri}></TileList>
                 </div>
             )}
             <div id="page-content-wrapper">
