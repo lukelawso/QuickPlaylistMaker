@@ -20,14 +20,14 @@ export default class Main extends Component {
             playlistTracks: {}
         };
         this.handleClick=this.handleClick.bind(this);
-        this.handleTileClick=this.handleTileClick.bind(this);
+        this.updatePlaylistTracks=this.updatePlaylistTracks.bind(this);
     }    
 
     async getPlaylistSongs(url) {
         return axios.get(url, {headers: {'Authorization': 'Bearer ' + this.state.token}})
         .then(res => {
             let songs = res.data.items.map(item => {
-                return item.track;
+                return item.track.uri;
             });
             if (res.data.next) {
                 return songs.concat(this.getPlaylistSongs(res.data.next));
@@ -68,8 +68,14 @@ export default class Main extends Component {
         });
     }
 
-    handleTileClick(index) {
-
+    updatePlaylistTracks(playlistUri, trackUri) {
+        let temp = this.state.playlistTracks[playlistUri];
+        if (trackUri in this.state.playlistTracks) {
+            temp.remove(trackUri);
+        } else {
+            temp.push(trackUri);
+        }
+        this.setState({playlistTracks: temp});
     }
 
     componentDidMount() {
@@ -117,7 +123,9 @@ export default class Main extends Component {
                         handleTileClick={this.handleTileClick} 
                         selectedIndices={this.state.selectedIndices}
                         playlistTracks={this.state.playlistTracks}
-                        currentTrackUri={this.state.currentTrackUri}></TileList>
+                        currentTrackUri={this.state.currentTrackUri}
+                        token={this.state.token}
+                        updatePlaylistTracks={this.updatePlaylistTracks}></TileList>
                 </div>
             )}
             <div id="page-content-wrapper">
