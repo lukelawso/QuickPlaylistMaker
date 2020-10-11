@@ -6,12 +6,11 @@ import TileList from './tileList.js';
 
 export default class Main extends Component {
     constructor(props) {
-        super(props);
+        super();
         this.state = {token: null, 
             playlists: [], 
             selectedIndices: [], 
             songQueue: {
-                current: null,
                 position: 0,
                 tracks: null,
                 offset: 0
@@ -32,7 +31,6 @@ export default class Main extends Component {
             if (res.data.next) {
                 return songs.concat(this.getPlaylistSongs(res.data.next));
             } else {
-                console.log(songs);
                 return songs;
             }
         })
@@ -42,8 +40,6 @@ export default class Main extends Component {
         //Fetch playlist items if first time choosing
         if (!this.state.playlistTracks.hasOwnProperty(this.state.playlists[index].uri)) {
             let list = await this.getPlaylistSongs(this.state.playlists[index].tracks.href);
-            
-            console.log(list);
             let temp = {};
             for (var i in this.state.playlistTracks) {
                 temp[i] = this.state.playlistTracks[i];    
@@ -69,11 +65,11 @@ export default class Main extends Component {
     }
 
     updatePlaylistTracks(playlistUri, trackUri) {
-        let temp = this.state.playlistTracks[playlistUri];
-        if (trackUri in this.state.playlistTracks) {
-            temp.remove(trackUri);
+        let temp = this.state.playlistTracks;
+        if (temp[playlistUri].includes(trackUri)) {
+            temp[playlistUri].splice(temp[playlistUri].indexOf(trackUri), 1);
         } else {
-            temp.push(trackUri);
+            temp[playlistUri].push(trackUri);
         }
         this.setState({playlistTracks: temp});
     }
@@ -95,15 +91,38 @@ export default class Main extends Component {
                 let uri = res.data.items[this.state.songQueue.position % 50].track.uri;
                 this.setState({
                     songQueue: {
-                        current: null,
-                        position: this.state.songQueue.position,
+                        position: 0,
                         tracks: res.data.items,
                         offset: offset
                     },
                     currentTrackUri: uri
             })})
         }
-        
+    }
+
+    nextTrack() {
+        if (this.state.songQueue.position % 50 === 49) {
+            axios.get(`https://api.spotify.com/v1/me/tracks?limit=50&offset=${this.state.songQueue.offset}`,
+            {headers: { 'Authorization': 'Bearer ' + this.state.token}})
+            .then(res => {
+                let uri = res.data.items[this.state.songQueue.position % 50].track.uri;
+                this.setState({
+                    songQueue: {
+                        position: this.state.songQueue.position+1,
+                        tracks: res.data.items,
+                        offset: this.state.songQueue.offset+50
+                    },
+                    currentTrackUri: uri
+            })})
+        } else {
+            this.setState({
+                songQueue: {
+                    position: this.state.songQueue.position+1,
+                    tracks: this.state.songQueue.tracks,
+                    offset: this.state.songQueue.offset
+                },
+                currentTrackUri: this.state.songQueue.tracks[this.state.songQueue.position+1].track.uri});
+        }
     }
 
     render() {        
@@ -119,17 +138,21 @@ export default class Main extends Component {
                         <Sidebar playlists={this.state.playlists} handleClick={this.handleClick}
                             currentTrackUri={this.state.currentTrackUri}></Sidebar>
                     </div>
-                    <TileList playlists={this.state.playlists} 
-                        handleTileClick={this.handleTileClick} 
-                        selectedIndices={this.state.selectedIndices}
-                        playlistTracks={this.state.playlistTracks}
-                        currentTrackUri={this.state.currentTrackUri}
-                        token={this.state.token}
-                        updatePlaylistTracks={this.updatePlaylistTracks}></TileList>
+                    <div className="text-center">
+                        <TileList playlists={this.state.playlists} 
+                            handleTileClick={this.handleTileClick} 
+                            selectedIndices={this.state.selectedIndices}
+                            playlistTracks={this.state.playlistTracks}
+                            currentTrackUri={this.state.currentTrackUri}
+                            token={this.state.token}
+                            updatePlaylistTracks={this.updatePlaylistTracks}></TileList>
+                            <button className="btn btn-success" onClick={() => {this.nextTrack();}}
+                                style={{
+
+                                }}>Next</button>
+                    </div>
                 </div>
-            )}
-            <div id="page-content-wrapper">
-            </div>         
+            )}        
         </div>
         )
     }
