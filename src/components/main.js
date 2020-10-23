@@ -16,6 +16,7 @@ export default class Main extends Component {
                 offset: 0
             },
             currentTrackUri: null,
+            preview: null,
             playlistTracks: {}
         };
         this.handleClick=this.handleClick.bind(this);
@@ -89,13 +90,15 @@ export default class Main extends Component {
             .then(res => {
                 let offset = this.state.songQueue.offset+50;
                 let uri = res.data.items[this.state.songQueue.position % 50].track.uri;
+                let preview = res.data.items[this.state.songQueue.position % 50].track.preview_url;
                 this.setState({
                     songQueue: {
                         position: 0,
                         tracks: res.data.items,
                         offset: offset
                     },
-                    currentTrackUri: uri
+                    currentTrackUri: uri,
+                    preview: preview
             })})
         }
     }
@@ -105,15 +108,21 @@ export default class Main extends Component {
             axios.get(`https://api.spotify.com/v1/me/tracks?limit=50&offset=${this.state.songQueue.offset}`,
             {headers: { 'Authorization': 'Bearer ' + this.state.token}})
             .then(res => {
-                let uri = res.data.items[this.state.songQueue.position % 50].track.uri;
+                let uri = res.data.items[this.state.songQueue.position % 50].track.uri;    
+                let preview = res.data.items[this.state.songQueue.position % 50].track.preview_url;            
                 this.setState({
                     songQueue: {
                         position: this.state.songQueue.position+1,
                         tracks: res.data.items,
                         offset: this.state.songQueue.offset+50
                     },
-                    currentTrackUri: uri
-            })})
+                    currentTrackUri: uri,
+                    preview: preview
+                }, () => document.getElementById("player").play());
+                
+                // var audio = new Audio(preview);
+                // audio.play();
+            })
         } else {
             this.setState({
                 songQueue: {
@@ -121,8 +130,14 @@ export default class Main extends Component {
                     tracks: this.state.songQueue.tracks,
                     offset: this.state.songQueue.offset
                 },
-                currentTrackUri: this.state.songQueue.tracks[this.state.songQueue.position+1].track.uri});
+                currentTrackUri: this.state.songQueue.tracks[this.state.songQueue.position+1].track.uri,
+                preview: this.state.songQueue.tracks[this.state.songQueue.position+1].track.preview_url
+            }, () => document.getElementById("player").play());
         }
+        console.log(document.getElementById("player"));
+        document.getElementById("player").play();
+        // var audio = new Audio(this.state.songQueue.tracks[this.state.songQueue.position+1].track.preview_url);
+        //         audio.play();
     }
 
     render() {        
@@ -136,7 +151,8 @@ export default class Main extends Component {
                             minWidth: "20%"
                         }}>
                         <Sidebar playlists={this.state.playlists} handleClick={this.handleClick}
-                            currentTrackUri={this.state.currentTrackUri}></Sidebar>
+                            currentTrackUri={this.state.currentTrackUri}
+                            preview={this.state.preview}></Sidebar>
                     </div>
                     <div className="text-center">
                         <TileList playlists={this.state.playlists} 

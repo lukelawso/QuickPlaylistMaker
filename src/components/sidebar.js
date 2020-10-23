@@ -25,11 +25,10 @@ export default class Sidebar extends Component {
                 <div id="sidebarFooter" style={{
                     maxHeight: "11vh"
                 }}>
-                    <iframe style={{maxHeight: "11vh", width: "100%"}} 
-                        src={"https://open.spotify.com/embed?uri="+this.props.currentTrackUri} 
-                        frameBorder="0" 
-                        allowtransparency="true"
-                        title="player"></iframe>
+                    <audio id="player" controls
+                        style={{width: "100%", marginBottom: "-7px"}} 
+                        src={this.props.preview}>
+                    </audio>
                 </div>                
             </div>
         )
