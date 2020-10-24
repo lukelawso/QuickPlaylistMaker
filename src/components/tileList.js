@@ -2,20 +2,20 @@ import axios from 'axios';
 import React, { Component } from 'react';
 export default class TileList extends Component {
     selectTile(uri) {
-        if (this.props.playlistTracks[uri].includes(this.props.currentTrackUri)) {
+        if (this.props.playlistTracks[uri].includes(this.props.currentTrack.uri)) {
             let config = {
                 url: `https://api.spotify.com/v1/playlists/${uri.substring(uri.lastIndexOf(':')+1)}/tracks`,
                 method: 'delete',
                 headers: {"Content-Type": "application/json; charset=utf-8",'Authorization': 'Bearer ' + this.props.token},
-                data: {tracks:[{uri: this.props.currentTrackUri}]}
+                data: {tracks:[{uri: this.props.currentTrack.uri}]}
             }
             axios(config)
-            .then(res => {this.props.updatePlaylistTracks(uri, this.props.currentTrackUri)})
+            .then(res => {this.props.updatePlaylistTracks(uri, this.props.currentTrack.uri)})
             .catch(err => {alert("Error removing track"); console.log(err);});       
         } else {
-            axios.post(`https://api.spotify.com/v1/playlists/${uri.substring(uri.lastIndexOf(':')+1)}/tracks?uris=${this.props.currentTrackUri}`,
+            axios.post(`https://api.spotify.com/v1/playlists/${uri.substring(uri.lastIndexOf(':')+1)}/tracks?uris=${this.props.currentTrack.uri}`,
             {}, {headers: {'Authorization': 'Bearer ' + this.props.token}})
-            .then(res => {this.props.updatePlaylistTracks(uri, this.props.currentTrackUri)})
+            .then(res => {this.props.updatePlaylistTracks(uri, this.props.currentTrack.uri)})
             .catch(err => {alert("Error adding to playlist (might be full)"); console.log(err);});
         }
     }
@@ -27,7 +27,7 @@ export default class TileList extends Component {
             if (this.props.playlists[i].selected) {
                 //Show button
                 bList.push(<button 
-                    className={`list-group-item list-group-item-action btn btn-success text-center ${this.props.playlistTracks[playlistUri].includes(this.props.currentTrackUri) ? "active" : ""}`} 
+                    className={`list-group-item list-group-item-action btn btn-success text-center ${this.props.playlistTracks[playlistUri].includes(this.props.currentTrack.uri) ? "active" : ""}`} 
                     style={{
                         height: "20vh",
                         width: "20vh",
@@ -45,7 +45,7 @@ export default class TileList extends Component {
             <div style={{margin: "10px"}}>
                 <div className="sidebar-heading">Select Playlists</div>
                 <ul className="btn-group"
-                    style={{maxHeight: "800px"}}>
+                    style={{maxHeight: "800px", display: "grid", gap: "1rem", gridTemplateColumns: "1fr 1fr 1fr 1fr"}}>
                     {bList}
                 </ul>
             </div>

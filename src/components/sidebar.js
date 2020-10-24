@@ -8,7 +8,7 @@ export default class Sidebar extends Component {
                     style={{
                         overflow: "hidden",
                         overflowY: "scroll",
-                        maxHeight: "86vh"
+                        maxHeight: "82vh"
                     }}>
                     {this.props.playlists.map((item, index)=> (
                         <button 
@@ -23,19 +23,21 @@ export default class Sidebar extends Component {
                     ))}
                 </ul>
                 <div id="sidebarFooter" style={{
-                    maxHeight: "11vh"
+                    maxHeight: "15vh"
                 }}>
                     <div>
-                        <img src={this.props.currentTrack.album.images[2].url} alt=""
-                            style={{float: "left"}}></img>
-                        <div style={{float:"left", marginLeft: "12px"}}>
-                            <p>{this.props.currentTrack.name}</p>
-                            <p>{this.props.currentTrack.artists[0].name}</p>
+                        <img src={this.props.currentTrack ? this.props.currentTrack.album.images[1].url : ""} alt=""
+                            style={{float: "left", width: "80px", height: "80px"}}></img>
+                        <div style={{float:"left", marginLeft: "12px", marginTop: "7px"}}>
+                            <p style={{marginTop: "6px"}}>
+                                <b>{this.props.currentTrack ? this.props.currentTrack.name : ""}<br/></b>
+                                {this.props.currentTrack ? this.props.currentTrack.artists[0].name : ""}
+                            </p>                        
                         </div>
                     </div>
                     <audio id="player" controls
                         style={{width: "100%", marginBottom: "-7px"}} 
-                        src={this.props.currentTrack.preview_url}>
+                        src={this.props.currentTrack ? this.props.currentTrack.preview_url : ""}>
                     </audio>
                 </div>                
             </div>

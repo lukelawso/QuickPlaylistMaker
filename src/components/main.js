@@ -144,19 +144,20 @@ export default class Main extends Component {
                         }}>
                         <Sidebar playlists={this.state.playlists} handleClick={this.handleClick}                        
                             currentTrack={this.state.currentTrack}></Sidebar>
-                    </div>
+                    </div>                    
                     <div className="text-center">
+                        <button className="btn btn-success" onClick={() => {this.nextTrack();}}
+                                style={{
+                                    alignSelf: "center"
+                                }}>Next</button>
                         <TileList playlists={this.state.playlists} 
                             handleTileClick={this.handleTileClick} 
                             selectedIndices={this.state.selectedIndices}
                             playlistTracks={this.state.playlistTracks}
-                            currentTrackUri={this.state.currentTrack.uri || ""}
+                            currentTrack={this.state.currentTrack}
                             token={this.state.token}
                             updatePlaylistTracks={this.updatePlaylistTracks}></TileList>
-                            <button className="btn btn-success" onClick={() => {this.nextTrack();}}
-                                style={{
-
-                                }}>Next</button>
+                            
                     </div>
                 </div>
             )}        
