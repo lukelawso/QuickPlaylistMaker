@@ -25,9 +25,17 @@ export default class Sidebar extends Component {
                 <div id="sidebarFooter" style={{
                     maxHeight: "11vh"
                 }}>
+                    <div>
+                        <img src={this.props.currentTrack.album.images[2].url} alt=""
+                            style={{float: "left"}}></img>
+                        <div style={{float:"left", marginLeft: "12px"}}>
+                            <p>{this.props.currentTrack.name}</p>
+                            <p>{this.props.currentTrack.artists[0].name}</p>
+                        </div>
+                    </div>
                     <audio id="player" controls
                         style={{width: "100%", marginBottom: "-7px"}} 
-                        src={this.props.preview}>
+                        src={this.props.currentTrack.preview_url}>
                     </audio>
                 </div>                
             </div>

@@ -15,8 +15,7 @@ export default class Main extends Component {
                 tracks: null,
                 offset: 0
             },
-            currentTrackUri: null,
-            preview: null,
+            currentTrack: null,
             playlistTracks: {}
         };
         this.handleClick=this.handleClick.bind(this);
@@ -88,17 +87,15 @@ export default class Main extends Component {
             axios.get(`https://api.spotify.com/v1/me/tracks?limit=50&offset=${this.state.songQueue.offset}`,
             {headers: { 'Authorization': 'Bearer ' + _token }})
             .then(res => {
+                console.log(res);
                 let offset = this.state.songQueue.offset+50;
-                let uri = res.data.items[this.state.songQueue.position % 50].track.uri;
-                let preview = res.data.items[this.state.songQueue.position % 50].track.preview_url;
                 this.setState({
                     songQueue: {
                         position: 0,
                         tracks: res.data.items,
                         offset: offset
                     },
-                    currentTrackUri: uri,
-                    preview: preview
+                    currentTrack: res.data.items[this.state.songQueue.position % 50].track
             })})
         }
     }
@@ -107,17 +104,14 @@ export default class Main extends Component {
         if (this.state.songQueue.position % 50 === 49) {
             axios.get(`https://api.spotify.com/v1/me/tracks?limit=50&offset=${this.state.songQueue.offset}`,
             {headers: { 'Authorization': 'Bearer ' + this.state.token}})
-            .then(res => {
-                let uri = res.data.items[this.state.songQueue.position % 50].track.uri;    
-                let preview = res.data.items[this.state.songQueue.position % 50].track.preview_url;            
+            .then(res => {           
                 this.setState({
                     songQueue: {
                         position: this.state.songQueue.position+1,
                         tracks: res.data.items,
                         offset: this.state.songQueue.offset+50
                     },
-                    currentTrackUri: uri,
-                    preview: preview
+                    currentTrack: res.data.items[this.state.songQueue.position % 50].track
                 }, () => document.getElementById("player").play());
                 
                 // var audio = new Audio(preview);
@@ -130,11 +124,9 @@ export default class Main extends Component {
                     tracks: this.state.songQueue.tracks,
                     offset: this.state.songQueue.offset
                 },
-                currentTrackUri: this.state.songQueue.tracks[this.state.songQueue.position+1].track.uri,
-                preview: this.state.songQueue.tracks[this.state.songQueue.position+1].track.preview_url
+                currentTrack: this.state.songQueue.tracks[this.state.songQueue.position+1].track
             }, () => document.getElementById("player").play());
         }
-        console.log(document.getElementById("player"));
         document.getElementById("player").play();
         // var audio = new Audio(this.state.songQueue.tracks[this.state.songQueue.position+1].track.preview_url);
         //         audio.play();
@@ -150,16 +142,15 @@ export default class Main extends Component {
                             width: "20%",
                             minWidth: "20%"
                         }}>
-                        <Sidebar playlists={this.state.playlists} handleClick={this.handleClick}
-                            currentTrackUri={this.state.currentTrackUri}
-                            preview={this.state.preview}></Sidebar>
+                        <Sidebar playlists={this.state.playlists} handleClick={this.handleClick}                        
+                            currentTrack={this.state.currentTrack}></Sidebar>
                     </div>
                     <div className="text-center">
                         <TileList playlists={this.state.playlists} 
                             handleTileClick={this.handleTileClick} 
                             selectedIndices={this.state.selectedIndices}
                             playlistTracks={this.state.playlistTracks}
-                            currentTrackUri={this.state.currentTrackUri}
+                            currentTrackUri={this.state.currentTrack.uri || ""}
                             token={this.state.token}
                             updatePlaylistTracks={this.updatePlaylistTracks}></TileList>
                             <button className="btn btn-success" onClick={() => {this.nextTrack();}}
