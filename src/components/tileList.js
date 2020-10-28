@@ -30,7 +30,6 @@ export default class TileList extends Component {
                     className={`list-group-item list-group-item-action btn btn-success text-center ${this.props.playlistTracks[playlistUri].includes(this.props.currentTrack.uri) ? "active" : ""}`} 
                     style={{
                         height: "20vh",
-                        width: "20vh",
                         borderRadius: "5px"
                     }}
                     key={i} 
@@ -44,7 +43,7 @@ export default class TileList extends Component {
         return (
             <div style={{margin: "10px"}}>
                 <div className="sidebar-heading">Select Playlists</div>
-                <ul className="btn-group"
+                <ul
                     style={{maxHeight: "800px", display: "grid", gap: "1rem", gridTemplateColumns: "1fr 1fr 1fr 1fr"}}>
                     {bList}
                 </ul>

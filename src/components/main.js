@@ -3,6 +3,7 @@ import axios from 'axios';
 import Sidebar from './sidebar.js'
 import hash from '../hash';
 import TileList from './tileList.js';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 export default class Main extends Component {
     constructor(props) {
@@ -145,11 +146,8 @@ export default class Main extends Component {
                         <Sidebar playlists={this.state.playlists} handleClick={this.handleClick}                        
                             currentTrack={this.state.currentTrack}></Sidebar>
                     </div>                    
-                    <div className="text-center">
-                        <button className="btn btn-success" onClick={() => {this.nextTrack();}}
-                                style={{
-                                    alignSelf: "center"
-                                }}>Next</button>
+                    <div className="text-center" style={{width: "80%"}}>
+                        
                         <TileList playlists={this.state.playlists} 
                             handleTileClick={this.handleTileClick} 
                             selectedIndices={this.state.selectedIndices}
@@ -157,7 +155,13 @@ export default class Main extends Component {
                             currentTrack={this.state.currentTrack}
                             token={this.state.token}
                             updatePlaylistTracks={this.updatePlaylistTracks}></TileList>
-                            
+                        <button className="btn btn-success" onClick={() => {this.nextTrack();}}
+                            style={{
+                                width: "80%",
+                                height: "10vh",
+                                marginLeft: "10px",
+                                marginRight: "10px"
+                            }}>Next</button>
                     </div>
                 </div>
             )}        

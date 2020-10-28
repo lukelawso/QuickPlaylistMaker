@@ -8,7 +8,7 @@ export default class Sidebar extends Component {
                     style={{
                         overflow: "hidden",
                         overflowY: "scroll",
-                        maxHeight: "82vh"
+                        maxHeight: "81vh"
                     }}>
                     {this.props.playlists.map((item, index)=> (
                         <button 
