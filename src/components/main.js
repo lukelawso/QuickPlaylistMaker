@@ -76,13 +76,20 @@ export default class Main extends Component {
     }
 
     componentDidMount() {
+        //add event listener for keyboard shortcuts
+        document.addEventListener('keydown', event => {
+            if (event.code === "Space") {
+                document.getElementById("nextButton").click();
+            }
+        });
+
         // Set token
         let _token = hash.access_token;
         if (_token) {
             // Get playlists
             axios.get('https://api.spotify.com/v1/me/playlists/?limit=50',
             {headers: { 'Authorization': 'Bearer ' + _token }})
-            .then(res => {this.setState({token: _token, playlists: res.data.items})});  
+            .then(res => {console.log(res); this.setState({token: _token, playlists: res.data.items})});  
             
             //Get saved songs
             axios.get(`https://api.spotify.com/v1/me/tracks?limit=50&offset=${this.state.songQueue.offset}`,
@@ -129,8 +136,6 @@ export default class Main extends Component {
             }, () => document.getElementById("player").play());
         }
         document.getElementById("player").play();
-        // var audio = new Audio(this.state.songQueue.tracks[this.state.songQueue.position+1].track.preview_url);
-        //         audio.play();
     }
 
     render() {        
@@ -155,7 +160,7 @@ export default class Main extends Component {
                             currentTrack={this.state.currentTrack}
                             token={this.state.token}
                             updatePlaylistTracks={this.updatePlaylistTracks}></TileList>
-                        <button className="btn btn-success" onClick={() => {this.nextTrack();}}
+                        <button id="nextButton" className="btn btn-success" onClick={() => {this.nextTrack();}}
                             style={{
                                 width: "80%",
                                 height: "10vh",

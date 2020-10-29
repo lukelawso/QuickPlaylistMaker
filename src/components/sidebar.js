@@ -3,12 +3,17 @@ export default class Sidebar extends Component {
     render() {
         return (
             <div>
-                <div className="sidebar-heading" style={{height: "3vh"}}>Select Playlists</div>
+                <div style={{height: "4vh"}} className="sidebar-heading row text-center" >
+                    <div className="col-6" style={{paddingTop: "5px"}}><b>Select Playlists</b></div>
+                    <div className="col-6">
+                    <button className="btn btn-primary" style={{marginRight: "5px", width: "100%"}}>Help</button>
+                    </div>
+                </div>
                 <ul className="list-group list-group-flush"
                     style={{
                         overflow: "hidden",
                         overflowY: "scroll",
-                        maxHeight: "81vh"
+                        maxHeight: "83vh"
                     }}>
                     {this.props.playlists.map((item, index)=> (
                         <button 
