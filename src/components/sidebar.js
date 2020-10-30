@@ -1,12 +1,41 @@
 import React, { Component } from 'react';
+import {Modal, Button} from 'react-bootstrap'; 
 export default class Sidebar extends Component {
+    state = { showHelp: false };
+
+    handleClose = () => this.setState({showHelp: false});
+    handleShow = () => this.setState({showHelp: true});
+
     render() {
         return (
             <div>
+                <Modal show={this.state.showHelp} onHide={this.handleClose}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Quick Playlist Maker Help</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        Welcome to Quick Playlist Maker. Use this web app to quickly add or remove songs to multiple spotify playlists.<br></br><br></br>
+                        
+                        To use, start by choosing which playlists to want to be able to modify by clicking them on the sidebar. 
+                        They will then show up as buttons in the center of the screen. 
+                        To add the current song to a playlist click the button with the playlist name in the center of the screen.
+                        If a song is already in a given playlist, the button will show as green, and clicking the button again will remove the song.<br></br><br></br>
+                        
+                        To move to the next song, click the green next button or press 'n'. By default, the app goes through all songs in the 'liked songs' playlist.
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="primary" onClick={this.handleClose}>
+                            Close
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
                 <div style={{height: "4vh"}} className="sidebar-heading row text-center" >
                     <div className="col-6" style={{paddingTop: "5px"}}><b>Select Playlists</b></div>
                     <div className="col-6">
-                    <button className="btn btn-primary" style={{marginRight: "5px", width: "100%"}}>Help</button>
+                    <button className="btn btn-primary" style={{marginRight: "5px", width: "100%", overflow: "hidden"}}
+                        onClick={this.handleShow}
+                        >
+                        Help</button>
                     </div>
                 </div>
                 <ul className="list-group list-group-flush"
@@ -33,9 +62,12 @@ export default class Sidebar extends Component {
                     <div>
                         <img src={this.props.currentTrack ? this.props.currentTrack.album.images[1].url : ""} alt=""
                             style={{float: "left", width: "80px", height: "80px"}}></img>
-                        <div style={{float:"left", marginLeft: "12px", marginTop: "7px"}}>
-                            <p style={{marginTop: "6px"}}>
-                                <b>{this.props.currentTrack ? this.props.currentTrack.name : ""}<br/></b>
+                        <div style={{float:"left", marginLeft: "12px", marginTop: "12px", maxWidth: "65%", maxHeight: "80px"}}>
+                            <p style={{overflow: "hidden", textOverflow: "ellipsis", maxHeight:"2rem", whiteSpace: "nowrap", marginBottom: "0"}}
+                                datatoggle="tooltip" title={this.props.currentTrack ? this.props.currentTrack.name : ""}>
+                                <b>{this.props.currentTrack ? this.props.currentTrack.name : ""}</b></p>
+                            <p style={{overflow: "hidden", textOverflow: "ellipsis", maxHeight:"2rem", whiteSpace: "nowrap", marginBottom: "0"}}
+                                datatoggle="tooltip" title={this.props.currentTrack ? this.props.currentTrack.artists[0].name : ""}>
                                 {this.props.currentTrack ? this.props.currentTrack.artists[0].name : ""}
                             </p>                        
                         </div>

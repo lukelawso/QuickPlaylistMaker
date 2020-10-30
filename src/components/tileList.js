@@ -41,8 +41,7 @@ export default class TileList extends Component {
             }
         }
         return (
-            <div style={{margin: "10px"}}>
-                <div className="sidebar-heading">Select Playlists</div>
+            <div style={{margin: "10px"}}>                
                 <ul
                     style={{paddingLeft: "0px", maxHeight: "800px", display: "grid", gap: "1rem", gridTemplateColumns: "1fr 1fr 1fr 1fr"}}>
                     {bList}

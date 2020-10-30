@@ -77,8 +77,8 @@ export default class Main extends Component {
 
     componentDidMount() {
         //add event listener for keyboard shortcuts
-        document.addEventListener('keydown', event => {
-            if (event.code === "Space") {
+        document.addEventListener('keyup', event => {
+            if (event.code === "KeyN") {
                 document.getElementById("nextButton").click();
             }
         });
@@ -89,13 +89,13 @@ export default class Main extends Component {
             // Get playlists
             axios.get('https://api.spotify.com/v1/me/playlists/?limit=50',
             {headers: { 'Authorization': 'Bearer ' + _token }})
-            .then(res => {console.log(res); this.setState({token: _token, playlists: res.data.items})});  
+            .then(res => {/*console.log(res);*/ this.setState({token: _token, playlists: res.data.items})});  
             
             //Get saved songs
             axios.get(`https://api.spotify.com/v1/me/tracks?limit=50&offset=${this.state.songQueue.offset}`,
             {headers: { 'Authorization': 'Bearer ' + _token }})
             .then(res => {
-                console.log(res);
+                //console.log(res);
                 let offset = this.state.songQueue.offset+50;
                 this.setState({
                     songQueue: {
@@ -135,10 +135,10 @@ export default class Main extends Component {
                 currentTrack: this.state.songQueue.tracks[this.state.songQueue.position+1].track
             }, () => document.getElementById("player").play());
         }
-        document.getElementById("player").play();
     }
 
-    render() {        
+    render() {    
+        console.log(this.state.playlists)   
         return (
         <div>
             {this.state.token != null && (
@@ -152,7 +152,14 @@ export default class Main extends Component {
                             currentTrack={this.state.currentTrack}></Sidebar>
                     </div>                    
                     <div className="text-center" style={{width: "80%"}}>
-                        
+                        <div id="tileHeading" style={{paddingBottom: "10px"}}>
+                            <h2>Select Playlists</h2>
+                            <select>{this.state.playlists.map((value, index) => 
+                                ( 
+                                    <option key={index} value={value.name}>{value.name}</option>
+                                ))}
+                            </select>
+                        </div>
                         <TileList playlists={this.state.playlists} 
                             handleTileClick={this.handleTileClick} 
                             selectedIndices={this.state.selectedIndices}
@@ -166,7 +173,7 @@ export default class Main extends Component {
                                 height: "10vh",
                                 marginLeft: "10px",
                                 marginRight: "10px"
-                            }}>Next</button>
+                            }}>Next (N)</button>
                     </div>
                 </div>
             )}        
