@@ -42,7 +42,7 @@ export default class Sidebar extends Component {
                     style={{
                         overflow: "hidden",
                         overflowY: "scroll",
-                        maxHeight: "83vh"
+                        maxHeight: "81vh"
                     }}>
                     {this.props.playlists.map((item, index)=> (
                         <button 
@@ -58,7 +58,7 @@ export default class Sidebar extends Component {
                 </ul>
                 <div id="sidebarFooter" style={{
                     maxHeight: "15vh"
-                }}>
+                }}>                    
                     <div>
                         <img src={this.props.currentTrack ? this.props.currentTrack.album.images[1].url : ""} alt=""
                             style={{float: "left", width: "80px", height: "80px"}}></img>

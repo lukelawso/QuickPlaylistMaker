@@ -14,7 +14,8 @@ export default class Main extends Component {
             songQueue: {
                 position: 0,
                 tracks: null,
-                offset: 0
+                offset: 0,
+                total: null
             },
             currentTrack: null,
             playlistTracks: {}
@@ -80,8 +81,8 @@ export default class Main extends Component {
         document.addEventListener('keyup', event => {
             if (event.code === "KeyN") {
                 document.getElementById("nextButton").click();
-            }
-        });
+            }            
+        });        
 
         // Set token
         let _token = hash.access_token;
@@ -95,13 +96,14 @@ export default class Main extends Component {
             axios.get(`https://api.spotify.com/v1/me/tracks?limit=50&offset=${this.state.songQueue.offset}`,
             {headers: { 'Authorization': 'Bearer ' + _token }})
             .then(res => {
-                //console.log(res);
+                console.log(res);
                 let offset = this.state.songQueue.offset+50;
                 this.setState({
                     songQueue: {
                         position: 0,
                         tracks: res.data.items,
-                        offset: offset
+                        offset: offset,
+                        total: res.data.total
                     },
                     currentTrack: res.data.items[this.state.songQueue.position % 50].track
             })})
@@ -117,7 +119,8 @@ export default class Main extends Component {
                     songQueue: {
                         position: this.state.songQueue.position+1,
                         tracks: res.data.items,
-                        offset: this.state.songQueue.offset+50
+                        offset: this.state.songQueue.offset+50,
+                        total: this.state.songQueue.total
                     },
                     currentTrack: res.data.items[this.state.songQueue.position % 50].track
                 }, () => document.getElementById("player").play());
@@ -130,7 +133,8 @@ export default class Main extends Component {
                 songQueue: {
                     position: this.state.songQueue.position+1,
                     tracks: this.state.songQueue.tracks,
-                    offset: this.state.songQueue.offset
+                    offset: this.state.songQueue.offset,
+                    total: this.state.songQueue.total
                 },
                 currentTrack: this.state.songQueue.tracks[this.state.songQueue.position+1].track
             }, () => document.getElementById("player").play());
@@ -138,7 +142,6 @@ export default class Main extends Component {
     }
 
     render() {    
-        console.log(this.state.playlists)   
         return (
         <div>
             {this.state.token != null && (
@@ -149,16 +152,22 @@ export default class Main extends Component {
                             minWidth: "20%"
                         }}>
                         <Sidebar playlists={this.state.playlists} handleClick={this.handleClick}                        
-                            currentTrack={this.state.currentTrack}></Sidebar>
+                            currentTrack={this.state.currentTrack} songQueue={this.state.songQueue}></Sidebar>
                     </div>                    
                     <div className="text-center" style={{width: "80%"}}>
-                        <div id="tileHeading" style={{paddingBottom: "10px"}}>
-                            <h2>Select Playlists</h2>
-                            <select>{this.state.playlists.map((value, index) => 
-                                ( 
-                                    <option key={index} value={value.name}>{value.name}</option>
-                                ))}
-                            </select>
+                        <div className="" id="tileHeading" style={{paddingBottom: "10px"}}>
+                            <h3 className="">Select Playlists</h3>
+                            <div>
+                                <select>{this.state.playlists.map((value, index) => 
+                                    ( 
+                                        <option key={index} value={value.name}>{value.name}</option>
+                                    ))}
+                                </select>       
+                                <div className="text-center">                          
+                                    <p id="songQueuePlace" contenteditable="true" style={{marginBottom:"8px", marginTop: "8px"}}>{this.state.songQueue.position}</p>
+                                    <p for="songQueuePosition" style={{marginBottom:"0"}}>/ {this.state.songQueue.total}</p>
+                                </div>                     
+                            </div>
                         </div>
                         <TileList playlists={this.state.playlists} 
                             handleTileClick={this.handleTileClick} 
