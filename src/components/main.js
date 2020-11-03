@@ -22,6 +22,7 @@ export default class Main extends Component {
         };
         this.handleClick=this.handleClick.bind(this);
         this.updatePlaylistTracks=this.updatePlaylistTracks.bind(this);
+        this.changeSource=this.changeSource.bind(this);
     }    
 
     async getPlaylistSongs(url) {
@@ -96,14 +97,13 @@ export default class Main extends Component {
             axios.get(`https://api.spotify.com/v1/me/tracks?limit=50&offset=${this.state.songQueue.offset}`,
             {headers: { 'Authorization': 'Bearer ' + _token }})
             .then(res => {
-                console.log(res);
-                let offset = this.state.songQueue.offset+50;
                 this.setState({
                     songQueue: {
                         position: 0,
                         tracks: res.data.items,
-                        offset: offset,
-                        total: res.data.total
+                        offset: 0,
+                        total: res.data.total,
+                        sourceUrl: "https://api.spotify.com/v1/me/tracks"
                     },
                     currentTrack: res.data.items[this.state.songQueue.position % 50].track
             })})
@@ -112,7 +112,7 @@ export default class Main extends Component {
 
     nextTrack() {
         if (this.state.songQueue.position % 50 === 49) {
-            axios.get(`https://api.spotify.com/v1/me/tracks?limit=50&offset=${this.state.songQueue.offset}`,
+            axios.get(`${this.state.songQueue.sourceUrl}?limit=50&offset=${this.state.songQueue.offset}`,
             {headers: { 'Authorization': 'Bearer ' + this.state.token}})
             .then(res => {           
                 this.setState({
@@ -120,7 +120,8 @@ export default class Main extends Component {
                         position: this.state.songQueue.position+1,
                         tracks: res.data.items,
                         offset: this.state.songQueue.offset+50,
-                        total: this.state.songQueue.total
+                        total: this.state.songQueue.total,
+                        sourceUrl: this.state.songQueue.sourceUrl
                     },
                     currentTrack: res.data.items[this.state.songQueue.position % 50].track
                 }, () => document.getElementById("player").play());
@@ -134,10 +135,46 @@ export default class Main extends Component {
                     position: this.state.songQueue.position+1,
                     tracks: this.state.songQueue.tracks,
                     offset: this.state.songQueue.offset,
-                    total: this.state.songQueue.total
+                    total: this.state.songQueue.total,
+                    sourceUrl: this.state.songQueue.sourceUrl
                 },
                 currentTrack: this.state.songQueue.tracks[this.state.songQueue.position+1].track
             }, () => document.getElementById("player").play());
+        }
+    }
+
+    changeSource(e) {
+        var index = e.target.selectedIndex;
+        if (index === 0) {
+            axios.get(`https://api.spotify.com/v1/me/tracks?limit=50&offset=${this.state.songQueue.offset}`,
+                {headers: { 'Authorization': 'Bearer ' + this.state.token }})
+                .then(res => {
+                    this.setState({
+                        songQueue: {
+                            position: 0,
+                            tracks: res.data.items,
+                            offset: 0,
+                            total: res.data.total,
+                            sourceUrl: "https://api.spotify.com/v1/me/tracks"
+                        },
+                        currentTrack: res.data.items[0].track
+                })})
+        } else {      
+            console.log(this.state.playlists, index);
+            axios.get(`${this.state.playlists[index-1].tracks.href}?limit=50&offset=${this.state.songQueue.offset}`,
+                {headers: { 'Authorization': 'Bearer ' + this.state.token }})
+                .then(res => {
+                    console.log(res);
+                    this.setState({
+                        songQueue: {
+                            position: 0,
+                            tracks: res.data.items,
+                            offset: 0,
+                            total: res.data.total,
+                            sourceUrl: this.state.playlists[index-1].tracks.href
+                        },
+                        currentTrack: res.data.items[0].track
+                })})
         }
     }
 
@@ -158,14 +195,16 @@ export default class Main extends Component {
                         <div className="" id="tileHeading" style={{paddingBottom: "10px"}}>
                             <h3 className="">Select Playlists</h3>
                             <div>
-                                <select>{this.state.playlists.map((value, index) => 
+                                <select id="sourcePlaylist" onChange={this.changeSource}>
+                                    <option key={0} value="Liked Songs">Liked Songs</option>
+                                    {this.state.playlists.map((value, index) => 
                                     ( 
-                                        <option key={index} value={value.name}>{value.name}</option>
+                                        <option key={index+1} value={value.name}>{value.name}</option>
                                     ))}
                                 </select>       
                                 <div className="text-center">                          
-                                    <p id="songQueuePlace" contenteditable="true" style={{marginBottom:"8px", marginTop: "8px"}}>{this.state.songQueue.position}</p>
-                                    <p for="songQueuePosition" style={{marginBottom:"0"}}>/ {this.state.songQueue.total}</p>
+                                    <p id="songQueuePlace" contentEditable="true" style={{marginBottom:"8px", marginTop: "8px"}}>{this.state.songQueue.position}</p>
+                                    <p id="songQueuePosition" style={{marginBottom:"0"}}>/ {this.state.songQueue.total}</p>
                                 </div>                     
                             </div>
                         </div>
