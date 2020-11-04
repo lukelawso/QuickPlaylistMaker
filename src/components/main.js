@@ -15,7 +15,8 @@ export default class Main extends Component {
                 position: 0,
                 tracks: null,
                 offset: 0,
-                total: null
+                total: null,
+                sourceUrl: "https://api.spotify.com/v1/me/tracks"
             },
             currentTrack: null,
             playlistTracks: {}
@@ -23,6 +24,7 @@ export default class Main extends Component {
         this.handleClick=this.handleClick.bind(this);
         this.updatePlaylistTracks=this.updatePlaylistTracks.bind(this);
         this.changeSource=this.changeSource.bind(this);
+        this.posChanged=this.posChanged.bind(this);
     }    
 
     async getPlaylistSongs(url) {
@@ -78,6 +80,8 @@ export default class Main extends Component {
     }
 
     componentDidMount() {
+        this.timer = null;
+
         //add event listener for keyboard shortcuts
         document.addEventListener('keyup', event => {
             if (event.code === "KeyN") {
@@ -124,7 +128,10 @@ export default class Main extends Component {
                         sourceUrl: this.state.songQueue.sourceUrl
                     },
                     currentTrack: res.data.items[this.state.songQueue.position % 50].track
-                }, () => document.getElementById("player").play());
+                }, () => {
+                    document.getElementById("player").play(); 
+                    document.getElementById("songQueuePlace").value = this.state.songQueue.position+1;
+                });
                 
                 // var audio = new Audio(preview);
                 // audio.play();
@@ -139,7 +146,10 @@ export default class Main extends Component {
                     sourceUrl: this.state.songQueue.sourceUrl
                 },
                 currentTrack: this.state.songQueue.tracks[this.state.songQueue.position+1].track
-            }, () => document.getElementById("player").play());
+            }, () => {
+                document.getElementById("player").play(); 
+                document.getElementById("songQueuePlace").value = this.state.songQueue.position+1;
+            });
         }
     }
 
@@ -160,11 +170,9 @@ export default class Main extends Component {
                         currentTrack: res.data.items[0].track
                 })})
         } else {      
-            console.log(this.state.playlists, index);
             axios.get(`${this.state.playlists[index-1].tracks.href}?limit=50&offset=${this.state.songQueue.offset}`,
                 {headers: { 'Authorization': 'Bearer ' + this.state.token }})
                 .then(res => {
-                    console.log(res);
                     this.setState({
                         songQueue: {
                             position: 0,
@@ -176,6 +184,28 @@ export default class Main extends Component {
                         currentTrack: res.data.items[0].track
                 })})
         }
+    }
+
+    posChanged() {
+        clearTimeout(this.timer);
+        this.timer = setTimeout(() => {
+            var val = document.getElementById("songQueuePlace").value;
+            if (val >= 1 && val <= this.state.songQueue.total) {
+                axios.get(`${this.state.songQueue.sourceUrl}?limit=50&offset=${Math.floor((val-1)/50)*50}`,
+                {headers: { 'Authorization': 'Bearer ' + this.state.token }})
+                .then(res => {
+                    this.setState({
+                        songQueue: {
+                            position: (val-1),
+                            tracks: res.data.items,
+                            offset: Math.floor((val-1)/50)*50,
+                            total: res.data.total,
+                            sourceUrl: this.state.songQueue.sourceUrl
+                        },
+                        currentTrack: res.data.items[(val-1)].track
+                })})
+            }            
+        }, 700);
     }
 
     render() {    
@@ -203,7 +233,8 @@ export default class Main extends Component {
                                     ))}
                                 </select>       
                                 <div className="text-center">                          
-                                    <p id="songQueuePlace" contentEditable="true" style={{marginBottom:"8px", marginTop: "8px"}}>{this.state.songQueue.position}</p>
+                                    <input id="songQueuePlace" type="number" contentEditable="true" onChange={this.posChanged} 
+                                        style={{marginBottom:"8px", marginTop: "8px"}} defaultValue={this.state.songQueue.position+1}></input>
                                     <p id="songQueuePosition" style={{marginBottom:"0"}}>/ {this.state.songQueue.total}</p>
                                 </div>                     
                             </div>
