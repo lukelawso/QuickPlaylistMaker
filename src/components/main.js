@@ -10,16 +10,9 @@ export default class Main extends Component {
         super();
         this.state = {token: null, 
             playlists: [], 
-            selectedIndices: [], 
-            songQueue: {
-                position: 0,
-                tracks: null,
-                offset: 0,
-                total: null,
-                sourceUrl: "https://api.spotify.com/v1/me/tracks"
-            },
             currentTrack: null,
-            playlistTracks: {}
+            position: 0,
+            activeSourceIndex: 0
         };
         this.handleClick=this.handleClick.bind(this);
         this.updatePlaylistTracks=this.updatePlaylistTracks.bind(this);
@@ -27,14 +20,15 @@ export default class Main extends Component {
         this.posChanged=this.posChanged.bind(this);
     }    
 
-    async getPlaylistSongs(url) {
-        return axios.get(url, {headers: {'Authorization': 'Bearer ' + this.state.token}})
+    async getPlaylistSongs(url, token = this.state.token) {
+        return axios.get(url, {headers: {'Authorization': 'Bearer ' + token}})
         .then(res => {
+            console.log(res);
             let songs = res.data.items.map(item => {
                 return item.track.uri;
             });
             if (res.data.next) {
-                return songs.concat(this.getPlaylistSongs(res.data.next));
+                return songs.concat(this.getPlaylistSongs(res.data.next, token));
             } else {
                 return songs;
             }
@@ -43,38 +37,22 @@ export default class Main extends Component {
 
     async handleClick(index) {
         //Fetch playlist items if first time choosing
-        if (!this.state.playlistTracks.hasOwnProperty(this.state.playlists[index].uri)) {
+        if (!this.state.playlists[index].loadedTracks) {
             let list = await this.getPlaylistSongs(this.state.playlists[index].tracks.href);
-            let temp = {};
-            for (var i in this.state.playlistTracks) {
-                temp[i] = this.state.playlistTracks[i];    
-            }
-            temp[this.state.playlists[index].uri] = list;
-            this.setState({playlistTracks: temp});
-                        
+            let temp = this.state.playlists;
+            temp[index].loadedTracks = list;
+            temp[index].selected = temp[index].selected ? false : true;
+            this.setState({playlists: temp});    
+                                
         }
-
-        //Update state selected attribute
-        const list = this.state.playlists.map((item, j) => {
-            if (j === index) {
-                let temp = item;
-                temp.selected = item.selected ? false : true;
-                return temp;
-            } else {
-                return item;
-            }
-        });
-        this.setState({
-            playlists: list
-        });
     }
 
-    updatePlaylistTracks(playlistUri, trackUri) {
-        let temp = this.state.playlistTracks;
-        if (temp[playlistUri].includes(trackUri)) {
-            temp[playlistUri].splice(temp[playlistUri].indexOf(trackUri), 1);
+    updatePlaylistTracks(playlistIndex, trackUri) {
+        let temp = this.state.playlists;
+        if (temp[playlistIndex].loadedTracks.includes(trackUri)) {
+            temp[playlistIndex].loadedTracks.splice(temp[playlistIndex].loadedTracks.indexOf(trackUri), 1);
         } else {
-            temp[playlistUri].push(trackUri);
+            temp[playlistIndex].loadedTracks.push(trackUri);
         }
         this.setState({playlistTracks: temp});
     }
@@ -95,62 +73,24 @@ export default class Main extends Component {
             // Get playlists
             axios.get('https://api.spotify.com/v1/me/playlists/?limit=50',
             {headers: { 'Authorization': 'Bearer ' + _token }})
-            .then(res => {/*console.log(res);*/ this.setState({token: _token, playlists: res.data.items})});  
-            
-            //Get saved songs
-            axios.get(`https://api.spotify.com/v1/me/tracks?limit=50&offset=${this.state.songQueue.offset}`,
-            {headers: { 'Authorization': 'Bearer ' + _token }})
             .then(res => {
-                this.setState({
-                    songQueue: {
-                        position: 0,
-                        tracks: res.data.items,
-                        offset: 0,
-                        total: res.data.total,
-                        sourceUrl: "https://api.spotify.com/v1/me/tracks"
-                    },
-                    currentTrack: res.data.items[this.state.songQueue.position % 50].track
-            })})
+                console.log(res); 
+
+                this.getPlaylistSongs("https://api.spotify.com/v1/me/tracks?limit=50", _token)
+                .then(list => {
+                    let temp = {name: "Like Songs", loadedTracks: list, uri: "likedSongs"};
+                    this.setState({token: _token, playlists: [res.data.items.unshift(temp)], position: 0, activeSourceIndex: 0});
+                });  
+            });                        
         }
     }
 
     nextTrack() {
-        if (this.state.songQueue.position % 50 === 49) {
-            axios.get(`${this.state.songQueue.sourceUrl}?limit=50&offset=${this.state.songQueue.offset}`,
-            {headers: { 'Authorization': 'Bearer ' + this.state.token}})
-            .then(res => {           
-                this.setState({
-                    songQueue: {
-                        position: this.state.songQueue.position+1,
-                        tracks: res.data.items,
-                        offset: this.state.songQueue.offset+50,
-                        total: this.state.songQueue.total,
-                        sourceUrl: this.state.songQueue.sourceUrl
-                    },
-                    currentTrack: res.data.items[this.state.songQueue.position % 50].track
-                }, () => {
-                    document.getElementById("player").play(); 
-                    document.getElementById("songQueuePlace").value = this.state.songQueue.position+1;
-                });
-                
-                // var audio = new Audio(preview);
-                // audio.play();
-            })
-        } else {
-            this.setState({
-                songQueue: {
-                    position: this.state.songQueue.position+1,
-                    tracks: this.state.songQueue.tracks,
-                    offset: this.state.songQueue.offset,
-                    total: this.state.songQueue.total,
-                    sourceUrl: this.state.songQueue.sourceUrl
-                },
-                currentTrack: this.state.songQueue.tracks[this.state.songQueue.position+1].track
-            }, () => {
-                document.getElementById("player").play(); 
-                document.getElementById("songQueuePlace").value = this.state.songQueue.position+1;
-            });
-        }
+        this.setState({position: position+1, currentTrack: this.state.playlists[index].loadedTracks[position+1].track}, 
+            () => {
+            document.getElementById("player").play(); 
+            document.getElementById("songQueuePlace").value = this.state.songQueue.position+1;
+        });
     }
 
     changeSource(e) {
@@ -241,7 +181,6 @@ export default class Main extends Component {
                         </div>
                         <TileList playlists={this.state.playlists} 
                             handleTileClick={this.handleTileClick} 
-                            selectedIndices={this.state.selectedIndices}
                             playlistTracks={this.state.playlistTracks}
                             currentTrack={this.state.currentTrack}
                             token={this.state.token}
