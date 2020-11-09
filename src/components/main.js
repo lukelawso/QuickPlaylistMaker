@@ -4,15 +4,18 @@ import Sidebar from './sidebar.js'
 import hash from '../hash';
 import TileList from './tileList.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
+import LoadingOverlay from 'react-loading-overlay';
+ 
 export default class Main extends Component {
     constructor(props) {
         super();
-        this.state = {token: null, 
+        this.state = {
+            token: null, 
             playlists: [], 
             currentTrack: null,
             position: 0,
-            activeSourceIndex: 0
+            activeSourceIndex: 0,
+            loadingTracks: false
         };
         this.handleClick=this.handleClick.bind(this);
         this.updatePlaylistTracks=this.updatePlaylistTracks.bind(this);
@@ -21,18 +24,16 @@ export default class Main extends Component {
     }    
 
     async getPlaylistSongs(url, token = this.state.token) {
-        return axios.get(url, {headers: {'Authorization': 'Bearer ' + token}})
-        .then(res => {
-            console.log(res);
-            let songs = res.data.items.map(item => {
-                return item.track.uri;
-            });
-            if (res.data.next) {
-                return songs.concat(this.getPlaylistSongs(res.data.next, token));
-            } else {
-                return songs;
-            }
-        })
+        var res = await axios.get(url, {headers: {'Authorization': 'Bearer ' + token}});   
+        let songs = res.data.items.map(item => {
+            return item.track;
+        });
+        if (res.data.next) {
+            return songs.concat(await this.getPlaylistSongs(res.data.next, token));
+        } else {
+            return songs;
+        }
+       
     }
 
     async handleClick(index) {
@@ -44,6 +45,10 @@ export default class Main extends Component {
             temp[index].selected = temp[index].selected ? false : true;
             this.setState({playlists: temp});    
                                 
+        } else {
+            let temp = this.state.playlists;
+            temp[index].selected = temp[index].selected ? false : true;
+            this.setState({playlists: temp});
         }
     }
 
@@ -69,119 +74,101 @@ export default class Main extends Component {
 
         // Set token
         let _token = hash.access_token;
-        if (_token) {
+        if (_token && this.state.playlists.length === 0) {
             // Get playlists
             axios.get('https://api.spotify.com/v1/me/playlists/?limit=50',
             {headers: { 'Authorization': 'Bearer ' + _token }})
-            .then(res => {
-                console.log(res); 
-
-                this.getPlaylistSongs("https://api.spotify.com/v1/me/tracks?limit=50", _token)
-                .then(list => {
-                    let temp = {name: "Like Songs", loadedTracks: list, uri: "likedSongs"};
-                    this.setState({token: _token, playlists: [res.data.items.unshift(temp)], position: 0, activeSourceIndex: 0});
-                });  
+            .then(async (res) => {
+                this.setState({token: _token, playlists: res.data.items, position: 0, activeSourceIndex: 0, loadingTracks: true});
+                var list = await this.getPlaylistSongs("https://api.spotify.com/v1/me/tracks?limit=50", _token);
+                let temp = {name: "Liked Songs", loadedTracks: list, uri: "likedSongs"};
+                res.data.items.unshift(temp);
+                this.setState({playlists: res.data.items, currentTrack: list[0], loadingTracks: false});                                  
             });                        
         }
     }
 
     nextTrack() {
-        this.setState({position: position+1, currentTrack: this.state.playlists[index].loadedTracks[position+1].track}, 
-            () => {
+        this.setState({position: this.state.position+1, 
+            currentTrack: this.state.playlists[this.state.activeSourceIndex].loadedTracks[this.state.position+1]
+        },() => {
             document.getElementById("player").play(); 
-            document.getElementById("songQueuePlace").value = this.state.songQueue.position+1;
+            document.getElementById("songQueuePlace").value = this.state.position+1;
         });
     }
 
-    changeSource(e) {
-        var index = e.target.selectedIndex;
-        if (index === 0) {
-            axios.get(`https://api.spotify.com/v1/me/tracks?limit=50&offset=${this.state.songQueue.offset}`,
-                {headers: { 'Authorization': 'Bearer ' + this.state.token }})
-                .then(res => {
-                    this.setState({
-                        songQueue: {
-                            position: 0,
-                            tracks: res.data.items,
-                            offset: 0,
-                            total: res.data.total,
-                            sourceUrl: "https://api.spotify.com/v1/me/tracks"
-                        },
-                        currentTrack: res.data.items[0].track
-                })})
-        } else {      
-            axios.get(`${this.state.playlists[index-1].tracks.href}?limit=50&offset=${this.state.songQueue.offset}`,
-                {headers: { 'Authorization': 'Bearer ' + this.state.token }})
-                .then(res => {
-                    this.setState({
-                        songQueue: {
-                            position: 0,
-                            tracks: res.data.items,
-                            offset: 0,
-                            total: res.data.total,
-                            sourceUrl: this.state.playlists[index-1].tracks.href
-                        },
-                        currentTrack: res.data.items[0].track
-                })})
+    async changeSource(e) {
+        var index = e.target.selectedIndex;   
+        if (!this.state.playlists[index].loadedTracks) {
+            let list = await this.getPlaylistSongs(this.state.playlists[index].tracks.href);
+            let temp = this.state.playlists;
+            temp[index].loadedTracks = list;
+            this.setState({playlists: temp, position: 0, currentTrack: list[0], activeSourceIndex: index});                                    
+        } else {
+            this.setState({position: 0, currentTrack: this.state.playlists[index].loadedTracks[0], activeSourceIndex: index});
         }
     }
 
     posChanged() {
         clearTimeout(this.timer);
         this.timer = setTimeout(() => {
-            var val = document.getElementById("songQueuePlace").value;
-            if (val >= 1 && val <= this.state.songQueue.total) {
-                axios.get(`${this.state.songQueue.sourceUrl}?limit=50&offset=${Math.floor((val-1)/50)*50}`,
-                {headers: { 'Authorization': 'Bearer ' + this.state.token }})
-                .then(res => {
-                    this.setState({
-                        songQueue: {
-                            position: (val-1),
-                            tracks: res.data.items,
-                            offset: Math.floor((val-1)/50)*50,
-                            total: res.data.total,
-                            sourceUrl: this.state.songQueue.sourceUrl
-                        },
-                        currentTrack: res.data.items[(val-1)].track
-                })})
-            }            
+            var val = document.getElementById("songQueuePlace").value-1;
+            if (val <= 0 || val > this.state.playlists[this.state.activeSourceIndex].loadedTracks.length) {
+                document.getElementById("songQueuePlace").value = 1;
+                this.setState({position: 0, 
+                    currentTrack: this.state.playlists[this.state.activeSourceIndex].loadedTracks[0]});                
+            } else {
+                this.setState({position: val, 
+                    currentTrack: this.state.playlists[this.state.activeSourceIndex].loadedTracks[val]});
+            }
+            
         }, 700);
     }
 
     render() {    
+        let total;
+        if (this.state.playlists.length > 0 && this.state.playlists[this.state.activeSourceIndex].loadedTracks) {
+            total = this.state.playlists[this.state.activeSourceIndex].loadedTracks.length;
+        } else {
+            total = 0;
+        }
         return (
-        <div>
-            {this.state.token != null && (
-                <div className="d-flex">
+        <div>            
+            {this.state.token != null && (                
+            <LoadingOverlay
+                active={this.state.loadingTracks}
+                spinner
+                text='Loading tracks...'
+                >
+                <div className="d-flex">          
+                                            
                     <div className="bg-light border-right" id="sidebar-wrapper"
                         style={{
                             width: "20%",
                             minWidth: "20%"
                         }}>
                         <Sidebar playlists={this.state.playlists} handleClick={this.handleClick}                        
-                            currentTrack={this.state.currentTrack} songQueue={this.state.songQueue}></Sidebar>
+                            currentTrack={this.state.currentTrack}></Sidebar>
                     </div>                    
                     <div className="text-center" style={{width: "80%"}}>
                         <div className="" id="tileHeading" style={{paddingBottom: "10px"}}>
                             <h3 className="">Select Playlists</h3>
                             <div>
                                 <select id="sourcePlaylist" onChange={this.changeSource}>
-                                    <option key={0} value="Liked Songs">Liked Songs</option>
                                     {this.state.playlists.map((value, index) => 
                                     ( 
                                         <option key={index+1} value={value.name}>{value.name}</option>
                                     ))}
                                 </select>       
                                 <div className="text-center">                          
-                                    <input id="songQueuePlace" type="number" contentEditable="true" onChange={this.posChanged} 
-                                        style={{marginBottom:"8px", marginTop: "8px"}} defaultValue={this.state.songQueue.position+1}></input>
-                                    <p id="songQueuePosition" style={{marginBottom:"0"}}>/ {this.state.songQueue.total}</p>
+                                    <input id="songQueuePlace" type="number" onChange={this.posChanged} 
+                                        style={{marginBottom:"8px", marginTop: "8px"}} defaultValue={this.state.position+1}></input>
+                                    <p id="songQueuePosition" style={{marginBottom:"0"}}>/ {total}</p>
                                 </div>                     
                             </div>
                         </div>
                         <TileList playlists={this.state.playlists} 
                             handleTileClick={this.handleTileClick} 
-                            playlistTracks={this.state.playlistTracks}
                             currentTrack={this.state.currentTrack}
                             token={this.state.token}
                             updatePlaylistTracks={this.updatePlaylistTracks}></TileList>
@@ -193,7 +180,8 @@ export default class Main extends Component {
                                 marginRight: "10px"
                             }}>Next (N)</button>
                     </div>
-                </div>
+                </div>                
+            </LoadingOverlay>  
             )}        
         </div>
         )
