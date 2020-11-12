@@ -1,12 +1,16 @@
 import React, { Component } from 'react';
 import axios from 'axios';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import LoadingOverlay from 'react-loading-overlay';
+
 import Sidebar from './sidebar.js'
 import hash from '../hash';
 import TileList from './tileList.js';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import LoadingOverlay from 'react-loading-overlay';
 import Entry from './entry.js';
- 
+import Help from './help.js';
+
+import githubLogo from '../GitHub-Mark-32px.png'; 
+
 export default class Main extends Component {
     constructor(props) {
         super();
@@ -17,13 +21,18 @@ export default class Main extends Component {
             position: 0,
             activeSourceIndex: 0,
             loadingTracks: false,
-            userUri: null
+            userUri: null,
+            showHelp: false
         };
         this.handleClick=this.handleClick.bind(this);
         this.updatePlaylistTracks=this.updatePlaylistTracks.bind(this);
         this.changeSource=this.changeSource.bind(this);
         this.posChanged=this.posChanged.bind(this);
-    }    
+        this.handleHelpClose=this.handleHelpClose.bind(this);
+    }  
+    
+    handleHelpClose = () => this.setState({showHelp: false});
+    handleHelpShow = () => this.setState({showHelp: true});
 
     async getPlaylistSongs(url, token = this.state.token) {
         var res = await axios.get(url, {headers: {'Authorization': 'Bearer ' + token}});   
@@ -88,7 +97,6 @@ export default class Main extends Component {
         if (_token && this.state.playlists.length === 0) {            
             this.getUserPlaylists('https://api.spotify.com/v1/me/playlists/?limit=50', _token)
             .then(async (items) => {
-                console.log(items);
                 var user = await axios.get('https://api.spotify.com/v1/me', {headers: { 'Authorization': 'Bearer ' + _token }});
                 this.setState({token: _token, playlists: items, position: 0, activeSourceIndex: 0, loadingTracks: true, userUri: user.data.uri});                
                 var list = await this.getPlaylistSongs("https://api.spotify.com/v1/me/tracks?limit=50", _token);
@@ -159,19 +167,26 @@ export default class Main extends Component {
                 >
                 <div className="d-flex">          
                                             
-                    <div className="bg-light border-right" id="sidebar-wrapper"
-                        style={{
-                            width: "20%",
-                            minWidth: "20%"
-                        }}>
+                    
                         <Sidebar 
                             playlists={this.state.playlists} 
                             handleClick={this.handleClick}                        
                             currentTrack={this.state.currentTrack}
                             userUri={this.state.userUri}>
                         </Sidebar>
-                    </div>                    
+                                    
                     <div className="text-center" style={{width: "80%"}}>
+                        <div>
+                            <button className="btn btn-primary float-right" style={{marginRight: "5px", marginTop: "5px", overflow: "hidden"}}
+                                onClick={this.handleHelpShow}>
+                                Help
+                            </button>
+                            <a className="float-right" href="https://github.com/lukelawso/quick-playlist-maker" title="View on GitHub" 
+                                style={{cursor: "pointer", marginRight: "5px", marginTop: "5px"}}>
+                                <img style={{height: "30px"}} src={githubLogo} alt=""></img>
+                            </a>
+                        </div>
+                        <Help showHelp={this.state.showHelp} handleClose={this.handleHelpClose}></Help>
                         <div className="" id="tileHeading" style={{paddingBottom: "10px"}}>
                             <h3 className="">Source Playlist</h3>
                             <div>
