@@ -15,7 +15,8 @@ export default class Main extends Component {
             currentTrack: null,
             position: 0,
             activeSourceIndex: 0,
-            loadingTracks: false
+            loadingTracks: false,
+            userUri: null
         };
         this.handleClick=this.handleClick.bind(this);
         this.updatePlaylistTracks=this.updatePlaylistTracks.bind(this);
@@ -32,8 +33,16 @@ export default class Main extends Component {
             return songs.concat(await this.getPlaylistSongs(res.data.next, token));
         } else {
             return songs;
+        }       
+    }
+
+    async getUserPlaylists(url, token = this.state.token) {
+        var res = await axios.get(url, {headers: { 'Authorization': 'Bearer ' + token }});
+        if (res.data.next) {
+            return res.data.items.concat(await this.getUserPlaylists(res.data.next, token));
+        } else {
+            return res.data.items;
         }
-       
     }
 
     async handleClick(index) {
@@ -52,12 +61,13 @@ export default class Main extends Component {
         }
     }
 
-    updatePlaylistTracks(playlistIndex, trackUri) {
+    updatePlaylistTracks(playlistIndex, currentTrack) {
         let temp = this.state.playlists;
-        if (temp[playlistIndex].loadedTracks.includes(trackUri)) {
-            temp[playlistIndex].loadedTracks.splice(temp[playlistIndex].loadedTracks.indexOf(trackUri), 1);
+        let index = temp[playlistIndex].loadedTracks.indexOf(currentTrack);
+        if (index !== -1) {
+            temp[playlistIndex].loadedTracks.splice(index, 1);
         } else {
-            temp[playlistIndex].loadedTracks.push(trackUri);
+            temp[playlistIndex].loadedTracks.push(currentTrack);
         }
         this.setState({playlistTracks: temp});
     }
@@ -68,33 +78,39 @@ export default class Main extends Component {
         //add event listener for keyboard shortcuts
         document.addEventListener('keyup', event => {
             if (event.code === "KeyN") {
-                document.getElementById("nextButton").click();
+                this.nextTrack();
             }            
         });        
 
         // Set token
         let _token = hash.access_token;
-        if (_token && this.state.playlists.length === 0) {
-            // Get playlists
-            axios.get('https://api.spotify.com/v1/me/playlists/?limit=50',
-            {headers: { 'Authorization': 'Bearer ' + _token }})
-            .then(async (res) => {
-                this.setState({token: _token, playlists: res.data.items, position: 0, activeSourceIndex: 0, loadingTracks: true});
+        if (_token && this.state.playlists.length === 0) {            
+            this.getUserPlaylists('https://api.spotify.com/v1/me/playlists/?limit=50', _token)
+            .then(async (items) => {
+                console.log(items);
+                var user = await axios.get('https://api.spotify.com/v1/me', {headers: { 'Authorization': 'Bearer ' + _token }});
+                this.setState({token: _token, playlists: items, position: 0, activeSourceIndex: 0, loadingTracks: true, userUri: user.data.uri});                
                 var list = await this.getPlaylistSongs("https://api.spotify.com/v1/me/tracks?limit=50", _token);
-                let temp = {name: "Liked Songs", loadedTracks: list, uri: "likedSongs"};
-                res.data.items.unshift(temp);
-                this.setState({playlists: res.data.items, currentTrack: list[0], loadingTracks: false});                                  
+                let temp = {name: "Liked Songs", loadedTracks: list, uri: "likedSongs", owner: {uri: user.data.uri}};
+                items.unshift(temp);
+                this.setState({playlists: items, currentTrack: list[0], loadingTracks: false});                                  
             });                        
         }
     }
 
     nextTrack() {
-        this.setState({position: this.state.position+1, 
-            currentTrack: this.state.playlists[this.state.activeSourceIndex].loadedTracks[this.state.position+1]
-        },() => {
-            document.getElementById("player").play(); 
-            document.getElementById("songQueuePlace").value = this.state.position+1;
-        });
+        if (this.state.position+1 >= this.state.playlists[this.state.activeSourceIndex].loadedTracks.length) {
+            document.getElementById("songQueuePlace").value = 1;
+            this.setState({position: 0, 
+                currentTrack: this.state.playlists[this.state.activeSourceIndex].loadedTracks[0]});           
+        } else {
+            this.setState({position: this.state.position+1, 
+                currentTrack: this.state.playlists[this.state.activeSourceIndex].loadedTracks[this.state.position+1]
+            },() => {
+                document.getElementById("player").play()
+                .then(() => document.getElementById("songQueuePlace").value = this.state.position+1);                 
+            });
+        }
     }
 
     async changeSource(e) {
@@ -134,7 +150,7 @@ export default class Main extends Component {
         }
         return (
         <div>            
-            {this.state.token != null && (                
+            {this.state.token != null ? (                
             <LoadingOverlay
                 active={this.state.loadingTracks}
                 spinner
@@ -147,12 +163,16 @@ export default class Main extends Component {
                             width: "20%",
                             minWidth: "20%"
                         }}>
-                        <Sidebar playlists={this.state.playlists} handleClick={this.handleClick}                        
-                            currentTrack={this.state.currentTrack}></Sidebar>
+                        <Sidebar 
+                            playlists={this.state.playlists} 
+                            handleClick={this.handleClick}                        
+                            currentTrack={this.state.currentTrack}
+                            userUri={this.state.userUri}>
+                        </Sidebar>
                     </div>                    
                     <div className="text-center" style={{width: "80%"}}>
                         <div className="" id="tileHeading" style={{paddingBottom: "10px"}}>
-                            <h3 className="">Select Playlists</h3>
+                            <h3 className="">Source Playlist</h3>
                             <div>
                                 <select id="sourcePlaylist" onChange={this.changeSource}>
                                     {this.state.playlists.map((value, index) => 
@@ -182,7 +202,12 @@ export default class Main extends Component {
                     </div>
                 </div>                
             </LoadingOverlay>  
-            )}        
+            ) : <div className="text-center" style={{marginTop: "30vh"}}><p>You are logged out</p><a
+                className="btn btn-success"
+                href="/"
+                >
+            Login Page
+            </a></div>}        
         </div>
         )
     }

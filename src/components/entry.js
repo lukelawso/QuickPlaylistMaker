@@ -10,7 +10,8 @@ export const scopes = [
     "playlist-read-private",
     "user-library-read",
     "playlist-modify-public",
-    "playlist-modify-private"
+    "playlist-modify-private",
+    "playlist-read-collaborative"
 ];
 
 
@@ -21,15 +22,21 @@ export default class Entry extends Component {
     }   
     render() {
     return (
-        <div className="text-center align-middle">
+        <div>
         {this.state.token == null && (
-            <div id="loginBtnWrap">
-            <a
-            id="loginBtn" className="btn btn-success"
-            href={`${authEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes.join("%20")}&response_type=token&show_dialog=true`}
-            >
-            Login to Spotify
-            </a>
+            <div className="text-center" style={{marginTop: "30vh"}}>
+                <h1>Welcome to Quick Playlist Maker</h1>
+                <h4>Quickly sort songs into playlists!</h4>
+                <p>Use this web app to quickly add or remove songs to multiple spotify playlists.</p>
+                <p>Login with Spotify to use</p>
+                <div id="loginBtnWrap">
+                <a
+                id="loginBtn" className="btn btn-success"
+                href={`${authEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes.join("%20")}&response_type=token&show_dialog=true`}
+                >
+                Login to Spotify
+                </a>
+                </div>
             </div>
         )}
         </div>

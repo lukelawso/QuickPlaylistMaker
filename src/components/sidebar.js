@@ -7,6 +7,22 @@ export default class Sidebar extends Component {
     handleShow = () => this.setState({showHelp: true});
 
     render() {
+        var destinationPlaylists = [];
+        for (let i = 0; i < this.props.playlists.length; i++) {
+            if (this.props.playlists[i].owner.uri === this.props.userUri) {
+                destinationPlaylists.push(
+                    <button 
+                        className={`list-group-item list-group-item-action ${this.props.playlists[i].selected ? "active" : ""}`} 
+                        //className={"list-group-item list-group-item-action bg-light "}
+                        key={i} 
+                        onClick={async () => {
+                            await this.props.handleClick(i);
+                        }}>
+                        {this.props.playlists[i].name}
+                    </button>);
+            } 
+        }
+
         return (
             <div>
                 <Modal show={this.state.showHelp} onHide={this.handleClose}>
@@ -21,7 +37,11 @@ export default class Sidebar extends Component {
                         To add the current song to a playlist click the button with the playlist name in the center of the screen.
                         If a song is already in a given playlist, the button will show as green, and clicking the button again will remove the song.<br></br><br></br>
                         
-                        To move to the next song, click the green next button or press 'n'. By default, the app goes through all songs in the 'liked songs' playlist.
+                        To move to the next song, click the green next button or press 'n'. 
+                        Alternatively, you can change the number below the drop down to skip to a different location in the source playlist.<br></br><br></br>
+                        
+                        By default, the app goes through all songs in the 'liked songs' playlist.
+                        You can change the source playlist using the drop down menu, this changes the queue of songs you go through as you hit the next button.
                     </Modal.Body>
                     <Modal.Footer>
                         <Button variant="primary" onClick={this.handleClose}>
@@ -44,17 +64,7 @@ export default class Sidebar extends Component {
                         overflowY: "scroll",
                         maxHeight: "81vh"
                     }}>
-                    {this.props.playlists.map((item, index)=> (
-                        <button 
-                            className={`list-group-item list-group-item-action ${item.selected ? "active" : ""}`} 
-                            //className={"list-group-item list-group-item-action bg-light "}
-                            key={index} 
-                            onClick={async () => {
-                                await this.props.handleClick(index);
-                            }}>
-                            {item.name}
-                        </button>
-                    ))}
+                    {destinationPlaylists}
                 </ul>
                 <div id="sidebarFooter" style={{
                     maxHeight: "15vh"
