@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 
 export const authEndpoint = "https://accounts.spotify.com/authorize";
-export const clientId = "cd158e63734a43a8b3492d49a496dede";
-export const redirectUri = "http://localhost:3000/main";
+export const clientId = "4d244e522fb448278385d588637eaecd";
+export const redirectUri = "http://localhost:3000";
 export const scopes = [
     "user-top-read",
     "user-read-currently-playing",

@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import {BrowserRouter as Router, Route } from "react-router-dom";
 
-import Entry from './components/entry.js';
+
 import Main from './components/main.js';
 
 
@@ -16,10 +15,8 @@ class App extends Component {
 
   render() {
     return (
-      <Router>
-        <Route path="/" exact component={Entry}/>  
-        <Route path="/main" exact component={Main} />  
-      </Router>
+      <Main>        
+      </Main>
       
     );
   }

@@ -5,6 +5,7 @@ import hash from '../hash';
 import TileList from './tileList.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import LoadingOverlay from 'react-loading-overlay';
+import Entry from './entry.js';
  
 export default class Main extends Component {
     constructor(props) {
@@ -202,12 +203,7 @@ export default class Main extends Component {
                     </div>
                 </div>                
             </LoadingOverlay>  
-            ) : <div className="text-center" style={{marginTop: "30vh"}}><p>You are logged out</p><a
-                className="btn btn-success"
-                href="/"
-                >
-            Login Page
-            </a></div>}        
+            ) : <Entry></Entry>}        
         </div>
         )
     }
