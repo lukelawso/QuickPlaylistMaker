@@ -1,0 +1,23 @@
+{
+  "files": {
+    "main.css": "/quick-playlist-maker/static/css/main.6dea0f05.chunk.css",
+    "main.js": "/quick-playlist-maker/static/js/main.f0261b55.chunk.js",
+    "main.js.map": "/quick-playlist-maker/static/js/main.f0261b55.chunk.js.map",
+    "runtime-main.js": "/quick-playlist-maker/static/js/runtime-main.ffdd9ecd.js",
+    "runtime-main.js.map": "/quick-playlist-maker/static/js/runtime-main.ffdd9ecd.js.map",
+    "static/css/2.ce2397d7.chunk.css": "/quick-playlist-maker/static/css/2.ce2397d7.chunk.css",
+    "static/js/2.3ac4931f.chunk.js": "/quick-playlist-maker/static/js/2.3ac4931f.chunk.js",
+    "static/js/2.3ac4931f.chunk.js.map": "/quick-playlist-maker/static/js/2.3ac4931f.chunk.js.map",
+    "index.html": "/quick-playlist-maker/index.html",
+    "static/css/2.ce2397d7.chunk.css.map": "/quick-playlist-maker/static/css/2.ce2397d7.chunk.css.map",
+    "static/css/main.6dea0f05.chunk.css.map": "/quick-playlist-maker/static/css/main.6dea0f05.chunk.css.map",
+    "static/js/2.3ac4931f.chunk.js.LICENSE.txt": "/quick-playlist-maker/static/js/2.3ac4931f.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.ffdd9ecd.js",
+    "static/css/2.ce2397d7.chunk.css",
+    "static/js/2.3ac4931f.chunk.js",
+    "static/css/main.6dea0f05.chunk.css",
+    "static/js/main.f0261b55.chunk.js"
+  ]
+}
